@@ -202,8 +202,11 @@ class Session(object):
             )
             return response, None
         except RequestException as exception:
-            if not retry_strategy_state.should_retry_on_failure() or not isinstance(  # noqa: E501
-                exception.original_exception, self.RETRY_EXCEPTIONS
+            if (
+                not retry_strategy_state.should_retry_on_failure()
+                or not isinstance(  # noqa: E501
+                    exception.original_exception, self.RETRY_EXCEPTIONS
+                )
             ):
                 raise
             return None, exception.original_exception
