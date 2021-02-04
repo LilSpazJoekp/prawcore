@@ -16,8 +16,8 @@ that deprecations will not be announced by a minor release.
 
 **Added**
 
-* When calling :meth:`.Session.request`, we add the key-value pair
-  ``"api_type": "json"`` to the ``json`` parameter, if it is a ``dict``.
+* When calling ``Session.request``, we add the key-value pair ``"api_type":
+  "json"`` to the ``json`` parameter, if it is a ``dict``.
 
 **Changed**
 
@@ -31,8 +31,8 @@ that deprecations will not be announced by a minor release.
 
 **Added**
 
-* All other requestor methods, most notably :meth:`.Session.request`, now contain
-  a ``timeout`` parameter.
+* All other requestor methods, most notably ``Session.request``, now contain a
+  ``timeout`` parameter.
 
 
 1.2.0 (2020-04-23)
@@ -40,16 +40,13 @@ that deprecations will not be announced by a minor release.
 
 **Added**
 
-* Method ``Requestor.request`` can be given a timeout parameter to 
-  control the amount of time to wait for a request to succeed.
+* Method ``Requestor.request`` can be given a timeout parameter to control the
+  amount of time to wait for a request to succeed.
 
 **Changed**
 
 * Updated rate limit algorithm to more intelligently rate limit when there
   are extra requests remaining.
-
-**Removed**
-
 * Drop python 2.7 support.
 
 1.0.1 (2019-02-05)
