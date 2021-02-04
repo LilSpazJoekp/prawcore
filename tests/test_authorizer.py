@@ -77,7 +77,9 @@ class AuthorizerTest(AuthorizerTestBase):
         self.assertFalse(authorizer.is_valid())
 
     def test_initialize__with_refresh_token(self):
-        authorizer = prawcore.Authorizer(self.authentication, REFRESH_TOKEN)
+        authorizer = prawcore.Authorizer(
+            self.authentication, refresh_token=REFRESH_TOKEN
+        )
         self.assertIsNone(authorizer.access_token)
         self.assertIsNone(authorizer.scopes)
         self.assertEqual(REFRESH_TOKEN, authorizer.refresh_token)
@@ -92,7 +94,46 @@ class AuthorizerTest(AuthorizerTestBase):
         self.assertFalse(authorizer.is_valid())
 
     def test_refresh(self):
-        authorizer = prawcore.Authorizer(self.authentication, REFRESH_TOKEN)
+        authorizer = prawcore.Authorizer(
+            self.authentication, refresh_token=REFRESH_TOKEN
+        )
+        with Betamax(REQUESTOR).use_cassette("Authorizer_refresh"):
+            authorizer.refresh()
+
+        self.assertIsNotNone(authorizer.access_token)
+        self.assertIsInstance(authorizer.scopes, set)
+        self.assertTrue(len(authorizer.scopes) > 0)
+        self.assertTrue(authorizer.is_valid())
+
+    def test_refresh__post_refresh_callback(self):
+        def callback(authorizer):
+            # Reddit isn't currently returning new refresh_tokens so
+            # the following assertion is currently commented out.
+            # self.assertNotEqual(REFRESH_TOKEN, authorizer.refresh_token)
+            authorizer.refresh_token = "manually_updated"
+
+        authorizer = prawcore.Authorizer(
+            self.authentication,
+            post_refresh_callback=callback,
+            refresh_token=REFRESH_TOKEN,
+        )
+        with Betamax(REQUESTOR).use_cassette("Authorizer_refresh"):
+            authorizer.refresh()
+
+        self.assertIsNotNone(authorizer.access_token)
+        self.assertEqual("manually_updated", authorizer.refresh_token)
+        self.assertIsInstance(authorizer.scopes, set)
+        self.assertTrue(len(authorizer.scopes) > 0)
+        self.assertTrue(authorizer.is_valid())
+
+    def test_refresh__pre_refresh_callback(self):
+        def callback(authorizer):
+            self.assertIsNone(authorizer.refresh_token)
+            authorizer.refresh_token = REFRESH_TOKEN
+
+        authorizer = prawcore.Authorizer(
+            self.authentication, pre_refresh_callback=callback
+        )
         with Betamax(REQUESTOR).use_cassette("Authorizer_refresh"):
             authorizer.refresh()
 
@@ -102,7 +143,9 @@ class AuthorizerTest(AuthorizerTestBase):
         self.assertTrue(authorizer.is_valid())
 
     def test_refresh__with_invalid_token(self):
-        authorizer = prawcore.Authorizer(self.authentication, "INVALID_TOKEN")
+        authorizer = prawcore.Authorizer(
+            self.authentication, refresh_token="INVALID_TOKEN"
+        )
         with Betamax(REQUESTOR).use_cassette(
             "Authorizer_refresh__with_invalid_token"
         ):
@@ -115,7 +158,9 @@ class AuthorizerTest(AuthorizerTestBase):
         self.assertFalse(authorizer.is_valid())
 
     def test_revoke__access_token_with_refresh_set(self):
-        authorizer = prawcore.Authorizer(self.authentication, REFRESH_TOKEN)
+        authorizer = prawcore.Authorizer(
+            self.authentication, refresh_token=REFRESH_TOKEN
+        )
         with Betamax(REQUESTOR).use_cassette(
             "Authorizer_revoke__access_token_with_refresh_set"
         ):
@@ -146,7 +191,9 @@ class AuthorizerTest(AuthorizerTestBase):
         self.assertFalse(authorizer.is_valid())
 
     def test_revoke__refresh_token_with_access_set(self):
-        authorizer = prawcore.Authorizer(self.authentication, REFRESH_TOKEN)
+        authorizer = prawcore.Authorizer(
+            self.authentication, refresh_token=REFRESH_TOKEN
+        )
         with Betamax(REQUESTOR).use_cassette(
             "Authorizer_revoke__refresh_token_with_access_set"
         ):
@@ -159,7 +206,9 @@ class AuthorizerTest(AuthorizerTestBase):
         self.assertFalse(authorizer.is_valid())
 
     def test_revoke__refresh_token_without_access_set(self):
-        authorizer = prawcore.Authorizer(self.authentication, REFRESH_TOKEN)
+        authorizer = prawcore.Authorizer(
+            self.authentication, refresh_token=REFRESH_TOKEN
+        )
         with Betamax(REQUESTOR).use_cassette(
             "Authorizer_revoke__refresh_token_without_access_set"
         ):
@@ -171,7 +220,9 @@ class AuthorizerTest(AuthorizerTestBase):
         self.assertFalse(authorizer.is_valid())
 
     def test_revoke__without_access_token(self):
-        authorizer = prawcore.Authorizer(self.authentication, REFRESH_TOKEN)
+        authorizer = prawcore.Authorizer(
+            self.authentication, refresh_token=REFRESH_TOKEN
+        )
         self.assertRaises(
             prawcore.InvalidInvocation, authorizer.revoke, only_access=True
         )
